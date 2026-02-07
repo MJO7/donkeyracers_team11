@@ -33,11 +33,13 @@ def calcDutyCycle(microseconds):
     if (microseconds > MAX or microseconds < MIN):
         microseconds = NEUTRAL
         print("PWM pulse exceeds safe boundaries")
-    return microseconds/1000/(1/60*1000)*65535
+    calcVal = int(microseconds/1000/(1/60*1000)*65535)
+    print(calcVal)
+    return calcVal
 
 if INITIALIZE == 1:
     #Sends a neutral signal to the ESC to 'arm' it for safety.
-    print(f"Arming ESC on channel {channel}...")
+    print(f"Arming ESC on channel {ESC_CHANNEL}...")
     pca.channels[ESC_CHANNEL].duty_cycle = calcDutyCycle(NEUTRAL)
     time.sleep(2.0) 
     print("ESC is armed.")
@@ -46,8 +48,11 @@ else:
 
 def setBackwards():
     pca.channels[ESC_CHANNEL].duty_cycle = calcDutyCycle(NEUTRAL)
-    pca.channels[ESC_CHANNEL].duty_cycle = calcDutyCycle(1400)
+    time.sleep(0.5)
+    pca.channels[ESC_CHANNEL].duty_cycle = calcDutyCycle(1300)
+    time.sleep(0.5)
     pca.channels[ESC_CHANNEL].duty_cycle = calcDutyCycle(NEUTRAL)
+    time.sleep(0.5)
 
 def setForward():
     pca.channels[ESC_CHANNEL].duty_cycle = calcDutyCycle(NEUTRAL)
@@ -55,6 +60,8 @@ def setForward():
     pca.channels[ESC_CHANNEL].duty_cycle = calcDutyCycle(NEUTRAL)
 
 def setMotorSpeed(length):
+    if (length < 1580 and length > 1390 and length != NEUTRAL):
+        print("input may be too weak")
     pca.channels[ESC_CHANNEL].duty_cycle = calcDutyCycle(length)
     time.sleep(1.0)
 
@@ -62,9 +69,21 @@ def setServoAngle(length):
     pca.channels[SERVO_CHANNEL].duty_cycle = calcDutyCycle(length)
     time.sleep(1.0)
 
-setMotorSpeed(1600)
-setServoAngle(1400)
+
+print("motor moving forward")
+setMotorSpeed(1580)
+setMotorSpeed(NEUTRAL)
+
+print("servos to left")
+setServoAngle(1700)
+
+print("set backwards mode")
 setBackwards()
-setMotorSpeed(1400)
+print("motors backwards")
+setMotorSpeed(1385)
+setMotorSpeed(NEUTRAL)
+
+print("reset servo")
+setServoAngle(NEUTRAL)
 
 pca.deinit()
