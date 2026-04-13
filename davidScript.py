@@ -56,8 +56,11 @@ def setBackwards():
 
 def setForward():
     pca.channels[ESC_CHANNEL].duty_cycle = calcDutyCycle(NEUTRAL)
+    time.sleep(0.5)
     pca.channels[ESC_CHANNEL].duty_cycle = calcDutyCycle(1600)
+    time.sleep(0.5)
     pca.channels[ESC_CHANNEL].duty_cycle = calcDutyCycle(NEUTRAL)
+    time.sleep(0.5)
 
 def setMotorSpeed(length):
     if (length < 1580 and length > 1390 and length != NEUTRAL):
