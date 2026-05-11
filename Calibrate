@@ -1,0 +1,90 @@
+import time
+import busio
+from board import SCL, SDA
+from adafruit_pca9685 import PCA9685
+import argparse
+
+parser = argparse.ArgumentParser(description="Interactive ESC/Servo calibration script")
+parser.add_argument('-e', '--esc', type=int, default=1, help='ESC channel (default: 1)')
+parser.add_argument('-s', '--servo', type=int, default=0, help='Servo channel (default: 0)')
+args = parser.parse_args()
+
+ESC_CHANNEL = args.esc
+SERVO_CHANNEL = args.servo
+
+FREQ = 60
+HARD_MIN = 1000  # absolute safety floor
+HARD_MAX = 2000  # absolute safety ceiling
+
+i2c = busio.I2C(SCL, SDA)
+pca = PCA9685(i2c)
+pca.frequency = FREQ
+
+def calcDutyCycle(microseconds):
+    return int(microseconds / 1000 / (1 / 60 * 1000) * 65535)
+
+def send(channel, value):
+    value = max(HARD_MIN, min(HARD_MAX, value))
+    pca.channels[channel].duty_cycle = calcDutyCycle(value)
+    return value
+
+print("=== ESC/Servo Calibration Tool ===")
+print(f"ESC on channel {ESC_CHANNEL}, Servo on channel {SERVO_CHANNEL}")
+print("Arming ESC (sending neutral 1500 for 2 seconds)...")
+send(ESC_CHANNEL, 1500)
+time.sleep(2.0)
+print("Armed!\n")
+
+print("Commands:")
+print("  e <value>   : set ESC (e.g. 'e 1500')")
+print("  s <value>   : set Servo (e.g. 's 1700')")
+print("  n           : send neutral (1500) to ESC")
+print("  stop        : send neutral to both and exit")
+print("")
+
+recorded = {"neutral": None, "min": None, "max": None}
+
+current_esc = 1500
+current_servo = 1500
+
+while True:
+    try:
+        cmd = input(">>> ").strip().lower()
+
+        if cmd == "stop":
+            print("Sending neutral to both channels and exiting...")
+            send(ESC_CHANNEL, 1500)
+            send(SERVO_CHANNEL, 1500)
+            pca.deinit()
+            print(f"\nRecorded values: {recorded}")
+            break
+
+        elif cmd == "n":
+            current_esc = send(ESC_CHANNEL, 1500)
+            print(f"ESC set to neutral: 1500")
+
+        elif cmd.startswith("e "):
+            val = int(cmd.split()[1])
+            current_esc = send(ESC_CHANNEL, val)
+            print(f"ESC set to: {current_esc}")
+            mark = input("Mark this as (neutral/min/max/skip)? ").strip().lower()
+            if mark in ("neutral", "min", "max"):
+                recorded[mark] = current_esc
+                print(f"Recorded {mark} = {current_esc}")
+
+        elif cmd.startswith("s "):
+            val = int(cmd.split()[1])
+            current_servo = send(SERVO_CHANNEL, val)
+            print(f"Servo set to: {current_servo}")
+
+        else:
+            print("Unknown command. Use 'e <val>', 's <val>', 'n', or 'stop'.")
+
+    except ValueError:
+        print("Invalid value, please enter an integer.")
+    except KeyboardInterrupt:
+        print("\nInterrupted! Sending neutral and exiting...")
+        send(ESC_CHANNEL, 1500)
+        send(SERVO_CHANNEL, 1500)
+        pca.deinit()
+        break

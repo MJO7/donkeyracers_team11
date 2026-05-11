@@ -19,7 +19,7 @@ INITIALIZE = args.initialize
 
 # === Constants ==
 FREQ = 60 # Standard ESC expects 50-60Hz
-NEUTRAL = 1500
+NEUTRAL = 1480
 MAX = 1900
 MIN = 1200
 
@@ -63,7 +63,7 @@ def setForward():
     time.sleep(0.5)
 
 def setMotorSpeed(length):
-    if (length < 1580 and length > 1390 and length != NEUTRAL):
+    if (length < 1562 and length > 1399 and length != NEUTRAL):
         print("input may be too weak")
     pca.channels[ESC_CHANNEL].duty_cycle = calcDutyCycle(length)
     time.sleep(1.0)
@@ -74,7 +74,9 @@ def setServoAngle(length):
 
 
 print("motor moving forward")
-setMotorSpeed(1580)
+setMotorSpeed(1575)
+time.sleep(3.0)
+
 setMotorSpeed(NEUTRAL)
 
 print("servos to left")
@@ -84,6 +86,7 @@ print("set backwards mode")
 setBackwards()
 print("motors backwards")
 setMotorSpeed(1385)
+time.sleep(3.0)
 setMotorSpeed(NEUTRAL)
 
 print("reset servo")
