@@ -19,9 +19,14 @@ INITIALIZE = args.initialize
 
 # === Constants ==
 FREQ = 60 # Standard ESC expects 50-60Hz
-NEUTRAL = 1480
-MAX = 1900
-MIN = 1200
+
+ESC NEUTRAL = 1480
+ESC MAX = 1900
+ESC MIN = 1070
+
+SERVO NEUTRAL = 1650
+SERVO LEFT(MAX) = 1900
+SERVO RIGHT(MIN) = 1000
 
 # Setup I2C bus and PCA9685
 i2c = busio.I2C(SCL, SDA)
@@ -30,7 +35,7 @@ pca.frequency = FREQ
 
 # converts our pulse lengths into usable duty cycle values
 def calcDutyCycle(microseconds):
-    if (microseconds > MAX or microseconds < MIN):
+    if (microseconds > SERVO LEFT(MAX) or microseconds < SERVO RIGHT(MIN)):
         microseconds = NEUTRAL
         print("PWM pulse exceeds safe boundaries")
     calcVal = int(microseconds/1000/(1/60*1000)*65535)

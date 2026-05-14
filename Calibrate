@@ -14,7 +14,7 @@ SERVO_CHANNEL = args.servo
 
 FREQ = 60
 HARD_MIN = 1000  # absolute safety floor
-HARD_MAX = 2000  # absolute safety ceiling
+HARD_MAX = 2200  # absolute safety ceiling
 
 i2c = busio.I2C(SCL, SDA)
 pca = PCA9685(i2c)
